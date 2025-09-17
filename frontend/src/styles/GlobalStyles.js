@@ -13,9 +13,44 @@ export const GlobalStyle = createGlobalStyle`
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Panoramic background inspired by Portorož coastal scenery */
+    background: 
+      linear-gradient(
+        to bottom,
+        rgba(135, 206, 250, 0.8) 0%,
+        rgba(135, 206, 250, 0.6) 30%,
+        rgba(102, 126, 234, 0.8) 70%,
+        rgba(118, 75, 162, 0.9) 100%
+      ),
+      linear-gradient(
+        45deg,
+        #87CEEB 0%,
+        #4682B4 25%,
+        #6495ED 50%,
+        #4169E1 75%,
+        #667eea 100%
+      );
+    background-size: 100% 100%, 200% 200%;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
     min-height: 100vh;
     line-height: 1.6;
+    position: relative;
+  }
+  
+  /* Add a subtle coastal atmosphere with an overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(ellipse at top, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
+      radial-gradient(ellipse at bottom, rgba(135, 206, 250, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
   }
 
   #root {

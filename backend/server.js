@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const mockSpeakers = require('./mockData');
 require('dotenv').config();
 
 const app = express();
@@ -142,7 +143,11 @@ async function getSpeakers() {
       return speakersCache;
     }
     
-    throw error;
+    // Fall back to mock data if API is not available
+    console.log('API not available, using mock data for development');
+    speakersCache = mockSpeakers;
+    cacheTimestamp = now;
+    return mockSpeakers;
   }
 }
 

@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import Masonry from 'react-masonry-css';
 import { useDebounce } from 'use-debounce';
 import SpeakerCard from './SpeakerCard';
 import SpeakerModal from './SpeakerModal';
@@ -131,15 +130,25 @@ const Stats = styled(motion.div)`
 `;
 
 const MasonryContainer = styled.div`
-  .masonry-grid {
-    display: flex;
-    margin-left: -20px;
-    width: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  align-items: start;
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
   }
   
-  .masonry-grid-column {
-    padding-left: 20px;
-    background-clip: padding-box;
+  @media (max-width: 1199px) and (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  @media (max-width: 767px) and (min-width: 576px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 575px) {
+    grid-template-columns: 1fr;
   }
 `;
 
@@ -198,13 +207,6 @@ const SpeakerGallery = ({ speakers, loading, error }) => {
         ? prev.filter(t => t !== tag)
         : [...prev, tag]
     );
-  };
-
-  const breakpointColumns = {
-    default: 4,
-    1200: 3,
-    768: 2,
-    576: 1
   };
 
   if (loading) {
@@ -299,22 +301,16 @@ const SpeakerGallery = ({ speakers, loading, error }) => {
           </EmptyState>
         ) : (
           <MasonryContainer>
-            <Masonry
-              breakpointCols={breakpointColumns}
-              className="masonry-grid"
-              columnClassName="masonry-grid-column"
-            >
-              <AnimatePresence>
-                {filteredSpeakers.map((speaker, index) => (
-                  <SpeakerCard
-                    key={speaker.id}
-                    speaker={speaker}
-                    index={index}
-                    onClick={setSelectedSpeaker}
-                  />
-                ))}
-              </AnimatePresence>
-            </Masonry>
+            <AnimatePresence>
+              {filteredSpeakers.map((speaker, index) => (
+                <SpeakerCard
+                  key={speaker.id}
+                  speaker={speaker}
+                  index={index}
+                  onClick={setSelectedSpeaker}
+                />
+              ))}
+            </AnimatePresence>
           </MasonryContainer>
         )}
       </Container>
