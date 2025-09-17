@@ -7,7 +7,18 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Middleware
-app.use(cors());
+// Configure CORS to allow requests from the frontend domain
+const corsOptions = {
+  origin: [
+    'https://frontend-lbwuup5ajwcv2.azurewebsites.net',
+    'http://localhost:3000' // Allow local development as well
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400 // Cache preflight requests for 24 hours
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // In-memory cache for performance
@@ -213,10 +224,16 @@ app.use('*', (req, res) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
+  const isAzure = process.env.WEBSITE_HOSTNAME ? true : false;
+  const baseUrl = isAzure 
+    ? `https://${process.env.WEBSITE_HOSTNAME}`
+    : `http://localhost:${PORT}`;
+    
   console.log(`🚀 NTK Gallery Backend running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`👥 Speakers API: http://localhost:${PORT}/api/speakers`);
+  console.log(`📊 Health check: ${baseUrl}/api/health`);
+  console.log(`👥 Speakers API: ${baseUrl}/api/speakers`);
+  console.log(`🌐 Running in ${isAzure ? 'Azure' : 'local'} environment`);
 }).on('error', (err) => {
   console.error('❌ Server failed to start:', err.message);
   if (err.code === 'EADDRINUSE') {

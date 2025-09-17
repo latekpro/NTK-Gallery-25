@@ -1,0 +1,17 @@
+# azure.yaml for NTK-Gallery
+name: ntk-gallery
+infra:
+  provider: bicep
+  path: infra
+  module: main
+services:
+  backend:
+    project: backend
+    language: js
+    host: appservice
+    dist: .
+  frontend:
+    project: frontend
+    language: js
+    host: staticwebapp
+    dist: build

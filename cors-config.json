@@ -1,0 +1,8 @@
+{
+  "supportCredentials": true,
+  "allowedOrigins": [
+    "https://frontend-lbwuup5ajwcv2.azurewebsites.net",
+    "https://witty-flower-0e739f010.2.azurestaticapps.net",
+    "http://localhost:3000"
+  ]
+}

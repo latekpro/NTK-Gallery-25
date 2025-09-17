@@ -1,0 +1,125 @@
+name: Deploy Frontend to Azure App Service
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-deploy.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Update API endpoint
+        run: |
+          # Create a production environment file with the backend API URL
+          echo "REACT_APP_API_URL=https://api-lbwuup5ajwcv2.azurewebsites.net/api" > .env.production
+          # Note: Use secrets.REACT_APP_API_URL in your GitHub repository instead of hardcoded value
+        working-directory: ./frontend
+        
+      - name: Build app
+        run: npm run build
+        working-directory: ./frontend
+        
+      - name: Create web.config file
+        run: |
+          cat > build/web.config << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <!-- Set the MIME type for JavaScript files -->
+              <staticContent>
+                <remove fileExtension=".json" />
+                <mimeMap fileExtension=".json" mimeType="application/json" />
+                <remove fileExtension=".js" />
+                <mimeMap fileExtension=".js" mimeType="application/javascript" />
+                <remove fileExtension=".css" />
+                <mimeMap fileExtension=".css" mimeType="text/css" />
+                <remove fileExtension=".map" />
+                <mimeMap fileExtension=".map" mimeType="application/json" />
+              </staticContent>
+              
+              <!-- Enable HTTP compression for faster loading -->
+              <httpCompression>
+                <dynamicTypes>
+                  <add mimeType="application/json" enabled="true" />
+                  <add mimeType="application/javascript" enabled="true" />
+                  <add mimeType="text/css" enabled="true" />
+                  <add mimeType="text/html" enabled="true" />
+                </dynamicTypes>
+              </httpCompression>
+
+              <!-- Rewrite all routes to index.html for SPA routing -->
+              <rewrite>
+                <rules>
+                  <!-- Don't rewrite requests for static files or API calls -->
+                  <rule name="StaticContent" stopProcessing="true">
+                    <match url="(\.js|\.css|\.svg|\.ttf|\.woff|\.woff2|\.eot|\.json|\.png|\.jpg|\.ico)$" />
+                    <action type="None" />
+                  </rule>
+                  
+                  <!-- Don't interfere with API calls -->
+                  <rule name="API Calls" stopProcessing="true">
+                    <match url="^api/.*" />
+                    <action type="None" />
+                  </rule>
+                  
+                  <!-- Rewrite all other routes to index.html -->
+                  <rule name="ReactRouter Routes" stopProcessing="true">
+                    <match url=".*" />
+                    <conditions logicalGrouping="MatchAll">
+                      <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                      <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+                    </conditions>
+                    <action type="Rewrite" url="/" />
+                  </rule>
+                </rules>
+              </rewrite>
+              
+              <!-- Set HTTP response headers for security and caching -->
+              <httpProtocol>
+                <customHeaders>
+                  <add name="Cache-Control" value="no-cache" />
+                  <add name="X-Content-Type-Options" value="nosniff" />
+                  <add name="X-XSS-Protection" value="1; mode=block" />
+                </customHeaders>
+              </httpProtocol>
+            </system.webServer>
+          </configuration>
+          EOF
+        working-directory: ./frontend
+        
+      - name: Package app
+        run: |
+          zip -r frontend-deployment-package.zip ./build/*
+        working-directory: ./frontend
+        
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'frontend-lbwuup5ajwcv2'
+          resource-group: 'ntk-gallery-rg'
+          package: './frontend/frontend-deployment-package.zip'

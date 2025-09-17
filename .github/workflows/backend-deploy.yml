@@ -1,0 +1,45 @@
+name: Deploy Backend to Azure App Service
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-deploy.yml'
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./backend
+      
+      - name: Create deployment package
+        run: |
+          zip -r deploy.zip . -x "node_modules/*"
+        working-directory: ./backend
+      
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: api-lbwuup5ajwcv2  # Replace with ${{ secrets.AZURE_APP_SERVICE_NAME }} for your GitHub repository
+          publish-profile: ${{ secrets.AZURE_APP_SERVICE_PUBLISH_PROFILE }}
+          package: ./backend/deploy.zip
+      
+      - name: Clean up deployment package
+        run: rm deploy.zip
+        working-directory: ./backend
