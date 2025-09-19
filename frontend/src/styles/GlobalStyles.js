@@ -1,4 +1,50 @@
-import styled, { createGlobalStyle } from 'styled-components';
+import styled, { createGlobalStyle, keyframes } from 'styled-components';
+
+/* Keyframe animations for coastal atmosphere */
+const gradientShift = keyframes`
+  0%, 100% {
+    background-position: 0% 50%, 0% 50%;
+  }
+  25% {
+    background-position: 100% 50%, 25% 75%;
+  }
+  50% {
+    background-position: 100% 100%, 50% 100%;
+  }
+  75% {
+    background-position: 0% 100%, 75% 25%;
+  }
+`;
+
+const waveFloat = keyframes`
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.4;
+  }
+  25% {
+    transform: translateY(-10px) translateX(5px);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(0px) translateX(10px);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateY(5px) translateX(5px);
+    opacity: 0.7;
+  }
+`;
+
+const lightShimmer = keyframes`
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.1) rotate(180deg);
+  }
+`;
 
 export const GlobalStyle = createGlobalStyle`
   * {
@@ -13,7 +59,7 @@ export const GlobalStyle = createGlobalStyle`
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Panoramic background inspired by Portorož coastal scenery */
+    /* Animated panoramic background inspired by Portorož coastal scenery */
     background: 
       linear-gradient(
         to bottom,
@@ -30,15 +76,17 @@ export const GlobalStyle = createGlobalStyle`
         #4169E1 75%,
         #667eea 100%
       );
-    background-size: 100% 100%, 200% 200%;
+    background-size: 100% 100%, 300% 300%;
     background-attachment: fixed;
     background-repeat: no-repeat;
+    animation: ${gradientShift} 15s ease-in-out infinite;
     min-height: 100vh;
     line-height: 1.6;
     position: relative;
+    overflow-x: hidden;
   }
   
-  /* Add a subtle coastal atmosphere with an overlay */
+  /* Add a subtle coastal atmosphere with animated overlay */
   body::before {
     content: '';
     position: fixed;
@@ -51,6 +99,24 @@ export const GlobalStyle = createGlobalStyle`
       radial-gradient(ellipse at bottom, rgba(135, 206, 250, 0.1) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
+    animation: ${lightShimmer} 8s ease-in-out infinite;
+  }
+
+  /* Floating coastal elements */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, rgba(135, 206, 250, 0.1) 0%, transparent 40%),
+      radial-gradient(circle at 40% 40%, rgba(102, 126, 234, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+    animation: ${waveFloat} 12s ease-in-out infinite;
   }
 
   #root {
